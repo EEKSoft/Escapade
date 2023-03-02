@@ -25,7 +25,9 @@ public class State
 
     public virtual void OnUpdate() 
     {
+        //Tick age up every update
         age += Time.fixedDeltaTime;
+        //If age > duration (AKA state has run for 'duration' seconds), exit to main state
         if (age >= duration) machine.ReturnToMain();
     }
 }

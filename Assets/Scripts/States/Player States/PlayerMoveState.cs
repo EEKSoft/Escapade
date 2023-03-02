@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class PlayerMoveState : State
 {
-    
+    public override void OnEnter;
 }
