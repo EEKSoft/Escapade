@@ -5,13 +5,15 @@ using UnityEngine;
 //TEST FOR COMMITING TO GITHUB!!!!! 
 public class TerrainMap
 {
-    //Pixel size / distance between tile centers
+    //Distance between tile centers
     public const int TILE_GAP = 1;
-    //Width / Height of player start and goal locations
+    //Width / Height of player start, key, and goal locations
     public const int SAFE_TILE_ZONE_WH = 3;
     //General map size, can be altered later to be changeable
-    public const int MAP_WIDTH = 20;
-    public const int MAP_HEIGHT = 20;
+    public const int MAP_WIDTH = 40;
+    public const int MAP_HEIGHT = 40;
+    //How far in from the corner does the player and exit spawn
+    public const int SPAWN_OFFSET = 1;
     //Get the half sizes, useful for distances and positioning
     public static int halfWidth = MAP_WIDTH / 2;
     public static int halfHeight = MAP_HEIGHT / 2;
@@ -27,7 +29,8 @@ public class TerrainMap
         TileLocations = new Dictionary<Point, MapTile>();
         //First generate the edges of the map
         GenerateEdges();
-
+        //Next, generate the spawn and exit zones
+        GenerateSpawnExit();
         //Finally fully, generate all tiles
         foreach(KeyValuePair<Point, MapTile> kvp in TileLocations)
         {
@@ -35,22 +38,54 @@ public class TerrainMap
         }
     }
 
+    /// <summary>
+    /// Generates the predefined edges of the map
+    /// </summary>
     private void GenerateEdges()
     {
         //First get the top edge tiles
-        for (int t = -halfWidth; t < halfWidth; t++) Collapse(TileIndex.Edge, t, halfHeight);
+        for (int t = -halfWidth - 1; t < halfWidth + 1; t++) AddPredefinedTile(TileIndex.Edge, t, halfHeight + 1);
 
         //Next right tiles
-        for (int r = halfHeight; r > -halfHeight; r--) Collapse(TileIndex.Edge, halfWidth, r);
+        for (int r = halfHeight + 1; r > -halfHeight - 1; r--) AddPredefinedTile(TileIndex.Edge, halfWidth + 1, r);
 
         //Then bottom tiles
-        for (int b = halfWidth; b > -halfWidth; b--) Collapse(TileIndex.Edge, b, -halfHeight);
+        for (int b = halfWidth + 1; b > -halfWidth - 1; b--) AddPredefinedTile(TileIndex.Edge, b, -halfHeight - 1);
 
         //Finally left tiles
-        for (int l = -halfHeight; l < halfHeight; l++) Collapse(TileIndex.Edge, -halfWidth, l);
+        for (int l = -halfHeight - 1; l < halfHeight + 1; l++) AddPredefinedTile(TileIndex.Edge, -halfWidth - 1, l);
     }
 
-    public void Collapse(TileIndex type, int x, int y)
+    /// <summary>
+    /// Generates predefined spawn and exit zones of the map
+    /// </summary>
+    private void GenerateSpawnExit()
+    {
+        //First the top left for spawn zone
+        for(int x = -halfWidth; x < -halfWidth + SAFE_TILE_ZONE_WH; x++)
+        {
+            for(int y = halfHeight; y > halfHeight - SAFE_TILE_ZONE_WH; y--)
+            {
+                AddPredefinedTile(TileIndex.Basic, x, y);
+            }
+        }
+        //Then the bottom right for exit zone
+        for (int x = halfWidth; x > halfWidth - SAFE_TILE_ZONE_WH; x--)
+        {
+            for (int y = -halfHeight; y < -halfHeight + SAFE_TILE_ZONE_WH; y++)
+            {
+                AddPredefinedTile(TileIndex.Basic, x, y);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Used for tiles that have to exist in a certain spot, start / end / key zone tiles
+    /// </summary>
+    /// <param name="type">Tile type</param>
+    /// <param name="x">X location of tiles</param>
+    /// <param name="y">Y location of tile</param>
+    private void AddPredefinedTile(TileIndex type, int x, int y)
     {
         //Makes the tile and sets it at it's position
         MapTile tile = new MapTile();
@@ -59,54 +94,4 @@ public class TerrainMap
         TileLocations.Add(tile.position, tile);
     }
 
-}
-
-public enum TileIndex
-{
-    //Simple land, can be walked on
-    Basic = 0,
-    //Cannot be moved through or seen through
-    Solid = 1,
-    //Basic, but slower move speed through it
-    Rough = 2,
-    //Solid, but can be seen through
-    Impassable = 3,
-    //Map Edge
-    Edge = 4
-}
-
-public class MapTile
-{
-    public static Sprite[] tileSprites;
-    //Object itself
-    public GameObject self;
-    //Position of the tile
-    public Point position;
-    //Type of tile
-    public TileIndex tileType;
-    
-    public static void LoadTileSprites()
-    {
-        //Establish the array
-        tileSprites = new Sprite[5];
-        //Loop through the array and assign the tile sprites to it
-        for(int i = 0; i < tileSprites.Length; i++)
-        {
-            //Like this means we can do levels with slightly differently designed tiles if we want, just a tad more changes
-            tileSprites[i] = Resources.Load<Sprite>($"Sprites/sprite_tiles_{i}");
-        }
-    }
-
-    //Places the tile with everything input
-    public void Generate(GameObject parent)
-    {
-        //Create the gameobject
-        self = new GameObject($"Tile{tileType}");
-        self.transform.parent = parent.transform;
-        //Set the position appropriately
-        self.transform.position = new Vector3(position.X, position.Y) * TerrainMap.TILE_GAP;
-        //Add the sprite renderer component
-        SpriteRenderer renderer = self.AddComponent<SpriteRenderer>();
-        renderer.sprite = tileSprites[(int)tileType];
-    }
 }

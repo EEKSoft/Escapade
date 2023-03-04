@@ -23,15 +23,23 @@ public class Level
         currentLevel = level;
         //Place the player onto the level
         GameObject player = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/PlayerPrefab"));
-        player.GetComponentInChildren<CharacterManager>().location = new Point(-TerrainMap.halfWidth + 2, TerrainMap.halfHeight - 2);
-        player.transform.position = new Vector3(-TerrainMap.halfWidth + 2, TerrainMap.halfHeight - 2) * TerrainMap.TILE_GAP;
+        player.GetComponentInChildren<CharacterManager>().location = new Point(-TerrainMap.halfWidth + TerrainMap.SPAWN_OFFSET, TerrainMap.halfHeight - TerrainMap.SPAWN_OFFSET);
+        player.transform.position = new Vector3(-TerrainMap.halfWidth + TerrainMap.SPAWN_OFFSET, TerrainMap.halfHeight - TerrainMap.SPAWN_OFFSET) * TerrainMap.TILE_GAP;
     }
 
+    /// <summary>
+    /// Gets rid of the current level in use
+    /// </summary>
     public static void DestroyLevel()
     {
         currentLevel = null;
     }
 
+    /// <summary>
+    /// Requests the tile type from the level's terrainmap, returns basic if there is no tile there
+    /// </summary>
+    /// <param name="position"></param>
+    /// <returns></returns>
     public TileIndex QueryTile(Point position)
     {
         return tileMap.TileLocations.ContainsKey(position) ? tileMap.TileLocations[position].tileType : TileIndex.Basic;

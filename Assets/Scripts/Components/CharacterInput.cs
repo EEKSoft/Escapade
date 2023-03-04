@@ -22,6 +22,12 @@ public class CharacterInput : MonoBehaviour
 
     void Update()
     {
+        //Having it setup like this means we can have entities with their own controls using a common component
+        if (isPlayer) ReadPlayerControls();
+    }
+
+    private void ReadPlayerControls()
+    {
         ReadMovementKeys();
     }
 

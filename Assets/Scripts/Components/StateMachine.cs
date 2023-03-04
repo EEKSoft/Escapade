@@ -38,9 +38,13 @@ public class StateMachine : MonoBehaviour
         if (currentState != null) currentState.OnUpdate();
         //Tick down buffer if active
         if (buffer > 0) buffer -= Time.fixedDeltaTime;
-        else buffer = 0f;
     }
 
+    /// <summary>
+    /// Enters the state given by statetype with optional parameters to give the state
+    /// </summary>
+    /// <param name="stateType"></param>
+    /// <param name="parameters"></param>
     public void BeginState(Type stateType, object[] parameters = null)
     {
         //Only next state if in main state
@@ -59,6 +63,9 @@ public class StateMachine : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Returns the character to their mainstate, usually idle
+    /// </summary>
     public void ReturnToMain()
     {
         //Apply end behavior to current state
