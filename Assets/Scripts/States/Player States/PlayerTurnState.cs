@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerTurnState : State
 {
-    private const float baseDuration = 0.2f;
+    private const float baseDuration = 0.15f;
     private float turnFraction = 0f;
     private float startAngle;
     private float endAngle;

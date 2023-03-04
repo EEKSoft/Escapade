@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class StateMachine : MonoBehaviour
 {
+    //Buffer to make it feel more fluid to move so you can turn with a bit of refinement
+    private const float ACTION_BUFFER = 0.1f;
+    public float buffer { get; private set; }
     //The main (Idle) state type to return to
     public Type mainStateType { get; private set; }
     //Current running state
@@ -17,6 +20,8 @@ public class StateMachine : MonoBehaviour
 
     private void Start()
     {
+        //Buffer starts off
+        buffer = 0f;
         //Start not busy
         busy = false;
         //Get manager component
@@ -31,6 +36,9 @@ public class StateMachine : MonoBehaviour
     {
         //Proc the onupdate of the current state every physics tick
         if (currentState != null) currentState.OnUpdate();
+        //Tick down buffer if active
+        if (buffer > 0) buffer -= Time.fixedDeltaTime;
+        else buffer = 0f;
     }
 
     public void BeginState(Type stateType, object[] parameters = null)
@@ -61,5 +69,7 @@ public class StateMachine : MonoBehaviour
         currentState.machine = this;
         //Set to not busy
         busy = false;
+        //Refresh buffer
+        buffer = ACTION_BUFFER;
     }
 }

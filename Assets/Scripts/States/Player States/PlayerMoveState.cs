@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerMoveState : State
 {
-    private const float baseDuration = 0.6f;
+    private const float baseDuration = 0.25f;
     private float movementFraction = 0f;
     private Vector3 startPosition;
     private Vector3 endPosition;
@@ -12,7 +12,7 @@ public class PlayerMoveState : State
     public override void OnBegin()
     {
         base.OnBegin();
-        duration = baseDuration;
+        duration = Level.currentLevel.QueryTile(machine.characterManager.location) == TileIndex.Rough ? baseDuration * 1.5f : baseDuration;
         startPosition = parent.position;
         endPosition = (Vector3)stateParameters[0];
     }

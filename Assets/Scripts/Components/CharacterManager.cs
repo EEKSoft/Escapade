@@ -1,27 +1,28 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
+using Unity.VisualScripting;
 using UnityEngine;
 
-//Required components, the manager needs components to manage
-[RequireComponent(typeof(CharacterInput))]
-[RequireComponent(typeof(StateMachine))]
 public class CharacterManager : MonoBehaviour
 {
     //Components
     public CharacterInput characterInput { get; private set; }
-    public StateMachine stateMachine { get; private set; }
     public StateTypeReference stateReference { get; private set; }
+    public StateMachine stateMachine { get; private set; }
 
     //Parameters to be given to the statemachine when needed
     private object[] stateParameters;
 
+    public Point location;
 
     void Start()
     {
         //Assign the components
         characterInput = GetComponent<CharacterInput>();
-        stateMachine = GetComponent<StateMachine>();
         stateReference = GetComponent<StateTypeReference>();
+        //Seems unintuitive, but we add this one because it depends on the statetypereference already existing in the start method
+        stateMachine = gameObject.AddComponent<StateMachine>();
         //Subscribe to move event
         characterInput.onMovementKeyAttempted += MovementAttempt;
     }
@@ -29,7 +30,7 @@ public class CharacterManager : MonoBehaviour
     private void MovementAttempt(Vector3 direction)
     {
         //If statemachine is busy, stop here
-        if (stateMachine.busy) return;
+        if (stateMachine.busy || stateMachine.buffer > 0) return;
         //Then, establish parameters variable to a size of 1, since we only need a single input for turn and move
         stateParameters = new object[1];
         //Convert the direction to an angle
@@ -40,8 +41,15 @@ public class CharacterManager : MonoBehaviour
         //If the angles match, we can move
         if(inputAngle == playerAngle)
         {
-            //Assign the direction to the parameter
-            stateParameters[0] = transform.position + direction;
+            //Update location
+            Point newLocation = new Point(Mathf.RoundToInt(location.X + direction.x), Mathf.RoundToInt(location.Y + direction.y));
+            //Get tile type at new location
+            TileIndex tile = Level.currentLevel.QueryTile(newLocation);
+            //Check tile, return if can't move into it
+            if (tile == TileIndex.Solid || tile == TileIndex.Impassable || tile == TileIndex.Edge) return;
+            //Assign the new location * the tile gap to the parameter and set the new player location
+            location = newLocation;
+            stateParameters[0] = new Vector3(location.X, location.Y) * TerrainMap.TILE_GAP;
             //Enter move state with new position parameter
             stateMachine.BeginState(stateReference.GetMoveStateType(), stateParameters);
         }
