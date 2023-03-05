@@ -1,22 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Unity.VisualScripting;
 using UnityEngine;
 //TEST FOR COMMITING TO GITHUB!!!!! 
 public class TerrainMap
 {
     //Distance between tile centers
-    public const int TILE_GAP = 1;
+    public const int TILE_GAP = 2;
     //Width / Height of player start, key, and goal locations
     public const int SAFE_TILE_ZONE_WH = 3;
     //General map size, can be altered later to be changeable
-    public const int MAP_WIDTH = 40;
-    public const int MAP_HEIGHT = 40;
+    public const int MAP_WIDTH = 7;
+    public const int MAP_HEIGHT = 7;
     //How far in from the corner does the player and exit spawn
     public const int SPAWN_OFFSET = 1;
-    //Get the half sizes, useful for distances and positioning
-    public static int halfWidth = MAP_WIDTH / 2;
-    public static int halfHeight = MAP_HEIGHT / 2;
 
     //A dictionary of tile locations, x y point keys to the tileindex representing the specific tile type at that coordinate
     public Dictionary<Point, MapTile> TileLocations;
@@ -31,7 +29,7 @@ public class TerrainMap
         GenerateEdges();
         //Next, generate the spawn and exit zones
         GenerateSpawnExit();
-        //Finally fully, generate all tiles
+        //Finally, fully generate all tiles with actual objects
         foreach(KeyValuePair<Point, MapTile> kvp in TileLocations)
         {
             TileLocations[kvp.Key].Generate(parent);
@@ -44,16 +42,16 @@ public class TerrainMap
     private void GenerateEdges()
     {
         //First get the top edge tiles
-        for (int t = -halfWidth - 1; t < halfWidth + 1; t++) AddPredefinedTile(TileIndex.Edge, t, halfHeight + 1);
+        for (int t = 0; t <= MAP_WIDTH; t++) AddPredefinedTile(TileIndex.Edge, t, 1);
 
         //Next right tiles
-        for (int r = halfHeight + 1; r > -halfHeight - 1; r--) AddPredefinedTile(TileIndex.Edge, halfWidth + 1, r);
+        for (int r = 0; r >= -MAP_HEIGHT; r--) AddPredefinedTile(TileIndex.Edge, MAP_WIDTH, r);
 
         //Then bottom tiles
-        for (int b = halfWidth + 1; b > -halfWidth - 1; b--) AddPredefinedTile(TileIndex.Edge, b, -halfHeight - 1);
+        for (int b = MAP_WIDTH -1; b >= -1; b--) AddPredefinedTile(TileIndex.Edge, b, -MAP_HEIGHT);
 
         //Finally left tiles
-        for (int l = -halfHeight - 1; l < halfHeight + 1; l++) AddPredefinedTile(TileIndex.Edge, -halfWidth - 1, l);
+        for (int l = -MAP_HEIGHT + 1; l <= 1; l++) AddPredefinedTile(TileIndex.Edge, -1, l);
     }
 
     /// <summary>
@@ -62,17 +60,17 @@ public class TerrainMap
     private void GenerateSpawnExit()
     {
         //First the top left for spawn zone
-        for(int x = -halfWidth; x < -halfWidth + SAFE_TILE_ZONE_WH; x++)
+        for(int x = 0; x < SAFE_TILE_ZONE_WH; x++)
         {
-            for(int y = halfHeight; y > halfHeight - SAFE_TILE_ZONE_WH; y--)
+            for(int y = 0; y > -SAFE_TILE_ZONE_WH; y--)
             {
                 AddPredefinedTile(TileIndex.Basic, x, y);
             }
         }
         //Then the bottom right for exit zone
-        for (int x = halfWidth; x > halfWidth - SAFE_TILE_ZONE_WH; x--)
+        for (int x = MAP_WIDTH - 1; x > MAP_WIDTH - 1 - SAFE_TILE_ZONE_WH; x--)
         {
-            for (int y = -halfHeight; y < -halfHeight + SAFE_TILE_ZONE_WH; y++)
+            for (int y = -MAP_HEIGHT + 1; y < -MAP_HEIGHT + 1 + SAFE_TILE_ZONE_WH; y++)
             {
                 AddPredefinedTile(TileIndex.Basic, x, y);
             }

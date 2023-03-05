@@ -1,27 +1,33 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
 /// Expected behavior of player on tiles as an enum to reference
 /// </summary>
+[Flags]
 public enum TileIndex
 {
     //Simple land, can be walked on
-    Basic = 0,
+    Basic = 1,
     //Cannot be moved through or seen through
-    Solid = 1,
+    Solid = 2,
     //Basic, but slower move speed through it
-    Rough = 2,
+    Rough = 4,
     //Solid, but can be seen through
-    Impassable = 3,
+    Impassable = 8,
     //Map Edge
-    Edge = 4
+    Edge = 16
 }
 
 public class MapTile
 {
+    public static readonly TileIndex MovementBlocking = TileIndex.Solid | TileIndex.Impassable | TileIndex.Edge;
+    public static readonly TileIndex VisionBlocking = TileIndex.Solid | TileIndex.Edge;
+
     public static Sprite[] tileSprites;
     //Object itself
     public GameObject self;
@@ -47,18 +53,21 @@ public class MapTile
 
     /// <summary>
     /// Should only be used at the end of building the tile map to place all the given tiles
+    /// Will likely change to use a prefab to spawn, and the prefab will likely contain a script
+    /// to help the wfc algorithm
     /// </summary>
     /// <param name="parent"></param>
     public void Generate(GameObject parent)
     {
         //Create the gameobject
-        self = new GameObject($"Tile{tileType}");
+        self = new GameObject($"Tile_{tileType}");
         //Assign it to the parent object
         self.transform.parent = parent.transform;
+        self.transform.localScale = self.transform.localScale * TerrainMap.TILE_GAP;
         //Set the position appropriately
         self.transform.position = new Vector3(position.X, position.Y) * TerrainMap.TILE_GAP;
         //Add the sprite renderer component
         SpriteRenderer renderer = self.AddComponent<SpriteRenderer>();
-        renderer.sprite = tileSprites[(int)tileType];
+        renderer.sprite = tileSprites[(int)Mathf.Log((int)tileType, 2)];
     }
 }

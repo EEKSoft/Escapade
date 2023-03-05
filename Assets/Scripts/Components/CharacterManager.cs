@@ -46,7 +46,7 @@ public class CharacterManager : MonoBehaviour
             //Get tile type at new location
             TileIndex tile = Level.currentLevel.QueryTile(newLocation);
             //Check tile, return if can't move into it
-            if (tile == TileIndex.Solid || tile == TileIndex.Impassable || tile == TileIndex.Edge) return;
+            if ((tile & MapTile.MovementBlocking) != 0) return;
             //Assign the new location * the tile gap to the parameter and set the new player location
             location = newLocation;
             stateParameters[0] = new Vector3(location.X, location.Y) * TerrainMap.TILE_GAP;

@@ -23,8 +23,9 @@ public class Level
         currentLevel = level;
         //Place the player onto the level
         GameObject player = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/PlayerPrefab"));
-        player.GetComponentInChildren<CharacterManager>().location = new Point(-TerrainMap.halfWidth + TerrainMap.SPAWN_OFFSET, TerrainMap.halfHeight - TerrainMap.SPAWN_OFFSET);
-        player.transform.position = new Vector3(-TerrainMap.halfWidth + TerrainMap.SPAWN_OFFSET, TerrainMap.halfHeight - TerrainMap.SPAWN_OFFSET) * TerrainMap.TILE_GAP;
+        player.GetComponentInChildren<CharacterManager>().location = new Point(TerrainMap.SPAWN_OFFSET, -TerrainMap.SPAWN_OFFSET);
+        player.transform.position = new Vector3(TerrainMap.SPAWN_OFFSET, -TerrainMap.SPAWN_OFFSET) * TerrainMap.TILE_GAP;
+        player.transform.localScale = player.transform.localScale * TerrainMap.TILE_GAP;
     }
 
     /// <summary>
