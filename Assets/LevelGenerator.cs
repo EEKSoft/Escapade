@@ -6,7 +6,7 @@ public class LevelGenerator : MonoBehaviour
 {
     void Start()
     {
-        Level.InstantiateNewLevel(0, gameObject);
+        Level.InstantiateNewLevel(new System.Random().Next(), gameObject);
     }
 
 }

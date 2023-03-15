@@ -7,17 +7,20 @@ using UnityEngine;
 public class TerrainMap
 {
     //Distance between tile centers
-    public const int TILE_GAP = 2;
+    public const int TILE_GAP = 1;
+    //General map size, can be altered later to be changeable
+    public const int MAP_WIDTH = 20;
+    public const int MAP_HEIGHT = 20;
     //Width / Height of player start, key, and goal locations
     public const int SAFE_TILE_ZONE_WH = 3;
-    //General map size, can be altered later to be changeable
-    public const int MAP_WIDTH = 7;
-    public const int MAP_HEIGHT = 7;
-    //How far in from the corner does the player and exit spawn
-    public const int SPAWN_OFFSET = 1;
+    //How far in from the corner does the player and exit spawn, and what is the min key distance from edges
+    public const int SPAWN_OFFSET = SAFE_TILE_ZONE_WH / 2;
 
-    //A dictionary of tile locations, x y point keys to the tileindex representing the specific tile type at that coordinate
+    //A dictionary of tile locations, x y point keys to the tile at that coordinate
     public Dictionary<Point, MapTile> TileLocations;
+
+    //Reference to point to for placing the key
+    public Point keyPoint;
 
     public TerrainMap(int seed, GameObject parent)
     {
@@ -29,6 +32,8 @@ public class TerrainMap
         GenerateEdges();
         //Next, generate the spawn and exit zones
         GenerateSpawnExit();
+        //Afterwards, find a location for the key and setup the area for it
+        GenerateKeyZone();
         //Finally, fully generate all tiles with actual objects
         foreach(KeyValuePair<Point, MapTile> kvp in TileLocations)
         {
@@ -75,6 +80,20 @@ public class TerrainMap
                 AddPredefinedTile(TileIndex.Basic, x, y);
             }
         }
+    }
+
+    /// <summary>
+    /// Generates the area where the key will spawn and finds a spawn point for it, this is where the first hint
+    /// of randomness starts to appear
+    /// </summary>
+    private void GenerateKeyZone()
+    {
+        //Randomly generate the x location with a few rules
+        //First determine an x location, between the map edges (0, map width) accounting for offset
+        int randX = (int)MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, MAP_WIDTH - SPAWN_OFFSET - 1));
+        //Ok, now we generate the y range based on the x value
+        int yCenter = (-MAP_HEIGHT + SPAWN_OFFSET) + randX;
+        AddPredefinedTile(TileIndex.Basic, randX, yCenter);
     }
 
     /// <summary>
