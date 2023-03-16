@@ -95,9 +95,10 @@ public class TerrainMap
         //First determine an x location, between the map edges (0, map width) accounting for offset
         int randX = (int)MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, MAP_WIDTH - SPAWN_OFFSET - 1));
         //Generate the Y offset based on x value
-        int yOffset = randX > halfX - 1 ? 0 : -9;
+        int yOffset = randX > halfX - 1 ? 0 : halfY - 1;
         //Ok, now we generate the y value, half -> full if x is < half, otherwise it is 0 -> half
-        int randY = (int)-MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, halfY - 1)) + yOffset;
+        int randY = (int)-MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, halfY - 1)) - yOffset;
+        keyPoint = new Point(randX, randY); 
         //Next we will start generating the square for the key to exist on and make the point to actually place it later
         //but for now I must study, make a notecard, and sleep for an exam
         AddPredefinedTile(TileIndex.Basic, randX, randY);

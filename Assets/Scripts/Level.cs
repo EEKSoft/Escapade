@@ -26,6 +26,10 @@ public class Level
         player.GetComponentInChildren<CharacterManager>().location = new Point(TerrainMap.SPAWN_OFFSET, -TerrainMap.SPAWN_OFFSET);
         player.transform.position = new Vector3(TerrainMap.SPAWN_OFFSET, -TerrainMap.SPAWN_OFFSET) * TerrainMap.TILE_GAP;
         player.transform.localScale = player.transform.localScale * TerrainMap.TILE_GAP;
+        //Places Key on the level
+        GameObject key = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/KeyPrefab"));
+        key.transform.position = new Vector3(level.tileMap.keyPoint.X, level.tileMap.keyPoint.Y) * TerrainMap.TILE_GAP;
+        key.transform.localScale = key.transform.localScale * TerrainMap.TILE_GAP;
     }
 
     /// <summary>
