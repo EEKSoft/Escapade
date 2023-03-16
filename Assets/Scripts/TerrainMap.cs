@@ -88,12 +88,19 @@ public class TerrainMap
     /// </summary>
     private void GenerateKeyZone()
     {
+        //Used later in the calculation
+        int halfX = MAP_WIDTH / 2;
+        int halfY = MAP_HEIGHT / 2;
         //Randomly generate the x location with a few rules
         //First determine an x location, between the map edges (0, map width) accounting for offset
         int randX = (int)MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, MAP_WIDTH - SPAWN_OFFSET - 1));
-        //Ok, now we generate the y range based on the x value
-        int yCenter = (-MAP_HEIGHT + SPAWN_OFFSET) + randX;
-        AddPredefinedTile(TileIndex.Basic, randX, yCenter);
+        //Generate the Y offset based on x value
+        int yOffset = randX > halfX - 1 ? 0 : -9;
+        //Ok, now we generate the y value, half -> full if x is < half, otherwise it is 0 -> half
+        int randY = (int)-MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, halfY - 1)) + yOffset;
+        //Next we will start generating the square for the key to exist on and make the point to actually place it later
+        //but for now I must study, make a notecard, and sleep for an exam
+        AddPredefinedTile(TileIndex.Basic, randX, randY);
     }
 
     /// <summary>
