@@ -99,9 +99,14 @@ public class TerrainMap
         //Ok, now we generate the y value, half -> full if x is < half, otherwise it is 0 -> half
         int randY = (int)-MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, halfY - 1)) - yOffset;
         keyPoint = new Point(randX, randY); 
-        //Next we will start generating the square for the key to exist on and make the point to actually place it later
-        //but for now I must study, make a notecard, and sleep for an exam
-        AddPredefinedTile(TileIndex.Basic, randX, randY);
+        //Next we will start generating the square for the key to exist on
+        for(int x = randX - 1; x <= randX + 1; x++)
+        {
+            for(int y = randY + 1; y >= randY - 1; y--)
+            {
+                AddPredefinedTile(TileIndex.Basic, x, y);
+            }
+        }
     }
 
     /// <summary>
