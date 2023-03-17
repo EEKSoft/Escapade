@@ -68,6 +68,9 @@ public class MapTile
         self.transform.position = new Vector3(position.X, position.Y) * TerrainMap.TILE_GAP;
         //Add the sprite renderer component
         SpriteRenderer renderer = self.AddComponent<SpriteRenderer>();
-        renderer.sprite = tileSprites[(int)Mathf.Log((int)tileType, 2)];
+        //Calculate the sprite index by getting the base 2 log of the enumerable tile type
+        int spriteIndex = (int)Mathf.Log((int)tileType, 2);
+        //Get the sprite at the given index
+        renderer.sprite = tileSprites[spriteIndex];
     }
 }
