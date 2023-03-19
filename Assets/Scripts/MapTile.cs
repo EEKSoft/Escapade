@@ -20,7 +20,9 @@ public enum TileIndex
     //Solid, but can be seen through
     Impassable = 8,
     //Map Edge
-    Edge = 16
+    Edge = 16,
+    //Before it is officially 'realized' or decided, it is every tile except edge
+    Unrealized = ~0 << 1
 }
 
 public class MapTile
@@ -34,7 +36,7 @@ public class MapTile
     //Position of the tile
     public Point position;
     //Type of tile
-    public TileIndex tileType;
+    public TileIndex tileType = TileIndex.Unrealized;
 
     /// <summary>
     /// Used to load tiles sprites for the level, can be used to
@@ -50,6 +52,8 @@ public class MapTile
             tileSprites[i] = Resources.Load<Sprite>($"Sprites/sprite_tiles_{i}");
         }
     }
+
+    
 
     /// <summary>
     /// Should only be used at the end of building the tile map to place all the given tiles
@@ -73,4 +77,6 @@ public class MapTile
         //Get the sprite at the given index
         renderer.sprite = tileSprites[spriteIndex];
     }
+    
+    
 }

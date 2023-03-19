@@ -19,6 +19,9 @@ public class TerrainMap
     //A dictionary of tile locations, x y point keys to the tile at that coordinate
     public Dictionary<Point, MapTile> TileLocations;
 
+    //Dictionary also of tile locations, but this is a pre-list of non-generated tiles, they move over to the established one after they are decided
+    public List<Point> UnrealizedCoordinates;
+
     //Reference to point to for placing the key
     public Point keyPoint;
 
@@ -105,6 +108,31 @@ public class TerrainMap
             for(int y = randY + 1; y >= randY - 1; y--)
             {
                 AddPredefinedTile(TileIndex.Basic, x, y);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Prepares the UnrealizedTiles variable with all tiles not currently in use and evaluates them
+    /// </summary>
+    private void PrepareUnestablishedTiles()
+    {
+        //Establish this first
+        Point point;
+        //First generate all points sequentially as long as they do not exist in TileLocations
+        for (int x = 0; x < MAP_WIDTH - 1; x++)
+        {
+            for (int y = 0; y > -MAP_HEIGHT + 1; y--)
+            {
+                //Generate the point
+                point = new Point(x, y);
+                //Check if it is in the dictionary, if so skip this iteration
+                if (TileLocations.ContainsKey(point)) continue;
+                //If it is not in the dictionary add it there and to the unrealized coordinate list
+                MapTile tile = new MapTile();
+                tile.position = point;
+                TileLocations.Add(point, tile);
+                UnrealizedCoordinates.Add(point);
             }
         }
     }
