@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 //TEST FOR COMMITING TO GITHUB!!!!! 
@@ -9,19 +11,25 @@ public class TerrainMap
     //Distance between tile centers
     public const int TILE_GAP = 1;
     //General map size, can be altered later to be changeable
-    public const int MAP_WIDTH = 20;
-    public const int MAP_HEIGHT = 20;
+    public const int MAP_WIDTH = 40;
+    public const int MAP_HEIGHT = 40;
     //Width / Height of player start, key, and goal locations
     public const int SAFE_TILE_ZONE_WH = 3;
     //How far in from the corner does the player and exit spawn, and what is the min key distance from edges
     public const int SPAWN_OFFSET = SAFE_TILE_ZONE_WH / 2;
+    //About how far from the center of the path from the start to exit can the start of the path to the key generate
+    public const int KEYPATH_DEVIATION = 10;
 
     //A dictionary of tile locations, x y point keys to the tile at that coordinate
     public Dictionary<Point, MapTile> TileLocations;
 
-    //Dictionary also of tile locations, but this is a pre-list of non-generated tiles, they move over to the established one after they are decided
+    //List of all coordinates that have not yet collapsed yet
     public List<Point> UnrealizedCoordinates;
 
+    //Reference to spawn position
+    public Point spawnPoint;
+    //Reference to exit position
+    public Point exitPoint;
     //Reference to point to for placing the key
     public Point keyPoint;
 
@@ -37,6 +45,8 @@ public class TerrainMap
         GenerateSpawnExit();
         //Afterwards, find a location for the key and setup the area for it
         GenerateKeyZone();
+        //Generate the paths from start to exit, and from random point on the path to the key
+        GenerateLegalPaths();
         //Finally, fully generate all tiles with actual objects
         foreach(KeyValuePair<Point, MapTile> kvp in TileLocations)
         {
@@ -67,18 +77,21 @@ public class TerrainMap
     /// </summary>
     private void GenerateSpawnExit()
     {
+        //Mark the spawn and exit points
+        spawnPoint = new Point(SPAWN_OFFSET, -SPAWN_OFFSET);
+        exitPoint = new Point(MAP_WIDTH - SPAWN_OFFSET - 1, -MAP_HEIGHT + SPAWN_OFFSET + 1);
         //First the top left for spawn zone
-        for(int x = 0; x < SAFE_TILE_ZONE_WH; x++)
+        for(int x = spawnPoint.X - 1; x <= spawnPoint.X + 1; x++)
         {
-            for(int y = 0; y > -SAFE_TILE_ZONE_WH; y--)
+            for(int y = spawnPoint.Y + 1; y >= spawnPoint.Y - 1; y--)
             {
                 AddPredefinedTile(TileIndex.Basic, x, y);
             }
         }
         //Then the bottom right for exit zone
-        for (int x = MAP_WIDTH - 1; x > MAP_WIDTH - 1 - SAFE_TILE_ZONE_WH; x--)
+        for (int x = exitPoint.X + 1; x >= exitPoint.X - 1; x--)
         {
-            for (int y = -MAP_HEIGHT + 1; y < -MAP_HEIGHT + 1 + SAFE_TILE_ZONE_WH; y++)
+            for (int y = exitPoint.Y - 1; y <= exitPoint.Y + 1; y++)
             {
                 AddPredefinedTile(TileIndex.Basic, x, y);
             }
@@ -109,6 +122,92 @@ public class TerrainMap
             {
                 AddPredefinedTile(TileIndex.Basic, x, y);
             }
+        }
+    }
+
+    /// <summary>
+    /// Generates paths from start to finish and from path to key so that the level is indeed possible
+    /// </summary>
+    private void GenerateLegalPaths()
+    {
+        //Add onto this 
+        List<Point> queuedNodes = new List<Point>();
+        //First generate a path between spawn and exit
+        GeneratePath(spawnPoint, exitPoint, ref queuedNodes, true);
+        //Grab one of the points at around the half point of the current queued nodes for the key, using the offset
+        int offset = UnityEngine.Random.Range(-KEYPATH_DEVIATION, KEYPATH_DEVIATION);
+        int nodePosition = queuedNodes.Count() / 2 - 1 + offset;
+        Point keyStart = queuedNodes[nodePosition];
+        //Next generate path from the start of the key path to the key
+        GeneratePath(keyStart, keyPoint, ref queuedNodes, false);
+        //Cull the queued nodes of all existing nodes (In the tilelocation dictionary) and duplicate nodes
+        queuedNodes = queuedNodes.Where(p => !TileLocations.ContainsKey(p)).Distinct().ToList();
+        //Finally, for each queued node, add them as predefined basic tiles
+        foreach(Point p in queuedNodes)
+        {
+            AddPredefinedTile(TileIndex.Basic, p.X, p.Y);
+        }
+    }
+
+    /// <summary>
+    /// Helper function for the GenerateLegalPaths method
+    /// Out for the path generated
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    private void GeneratePath(Point a, Point b, ref List<Point> path, bool useKeyWeight)
+    {
+        //Current point we are looking at, for iterating through the path.  Start at the beginning
+        Point current = a;
+        //Basic get distance from start to end point for x, y, and a total distance for both.  We gotta use floats or bad things happen
+        float xDist = MathF.Abs(b.X - a.X);
+        int xDir = MathF.Sign(b.X - a.X);
+        float yDist = MathF.Abs(b.Y - a.Y);
+        int yDir = MathF.Sign(b.Y - a.Y);
+        float totalDist = xDist + yDist;
+        //Establish vector2 for direction choosing weight.  We use a vector2 because it has inbuilt normalization
+        Vector2 directionWeight;
+        //Establish bias variables
+        float yBias = 1f;
+        float xBias = 1f;
+        float extremenessBias = 1f;
+        //If key weight, then calculate it, otherwise make it slightly randomized
+        if (useKeyWeight)
+        {
+            //Finally before looping, find a key-based bias for X and Y
+            yBias = keyPoint.X / ((float)exitPoint.X / 2) + 0.5f;
+            xBias = keyPoint.Y / ((float)exitPoint.Y / 2) + 0.5f;
+            //And calculate how far out it should try to curve in general
+            //extremenessBias = Mathf.Pow(2.5f - Mathf.Abs(1 - xBias) - MathF.Abs(yBias), 1.5f);
+            extremenessBias = 1.2f;
+        }
+        else xBias = UnityEngine.Random.Range(0.8f, 1.2f);
+        Vector2 bias = new Vector2(xBias, yBias).normalized * extremenessBias;
+
+        //Now we start the loop for pathmaking, as long as we aren't at the end
+        while (totalDist > 0)
+        {
+            //Add the current node to the path
+            path.Add(current);
+            //Now to decide the next node by finding a weight usually starts at 0.5 to 0.5, avoiding div by 0 ofc
+            directionWeight = new Vector2(xDist / (totalDist + 1), yDist / (totalDist + 1));
+            //Now we get a little funky with it and multiply a little bit of random bias
+            directionWeight *= bias;
+            //We only really need the x for the rng calculation, so take it and turn it into a fraction of 1
+            float xPercent = directionWeight.x / (directionWeight.x + directionWeight.y);
+            //Now use the X value as a percentage chance for it to move horizontally, otherwise move vertically
+            if(UnityEngine.Random.value < xPercent)
+            {
+                current = new Point(current.X + xDir, current.Y);
+                xDist--;
+            } 
+            else
+            {
+                current = new Point(current.X, current.Y + yDir);
+                yDist--;
+            }
+            //Lastly, decrement the total distance between points by 1
+            totalDist--;
         }
     }
 
