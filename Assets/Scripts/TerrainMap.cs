@@ -170,19 +170,24 @@ public class TerrainMap
         //Establish bias variables
         float yBias = 1f;
         float xBias = 1f;
-        float extremenessBias = 1f;
         //If key weight, then calculate it, otherwise make it slightly randomized
         if (useKeyWeight)
         {
             //Finally before looping, find a key-based bias for X and Y
             yBias = keyPoint.X / ((float)exitPoint.X / 2) + 0.5f;
             xBias = keyPoint.Y / ((float)exitPoint.Y / 2) + 0.5f;
-            //And calculate how far out it should try to curve in general
-            //extremenessBias = Mathf.Pow(2.5f - Mathf.Abs(1 - xBias) - MathF.Abs(yBias), 1.5f);
-            extremenessBias = 1.2f;
+            //Used to prevent a middle-key forcing the path to cut through it.  If below a certain number, we
+            //force the path to take a slight detour in either direction
+            float biasDifferential = MathF.Abs(xBias - yBias);
+            if(biasDifferential <= 0.35f)
+            {
+                //Randomly add to Y or X
+                float bonusBias = (1f - biasDifferential) * 3f;
+                if (UnityEngine.Random.value <= 0.5f) yBias += bonusBias;
+                else xBias += bonusBias;
+            }
         }
-        else xBias = UnityEngine.Random.Range(0.8f, 1.2f);
-        Vector2 bias = new Vector2(xBias, yBias).normalized * extremenessBias;
+        Vector2 bias = new Vector2(xBias, yBias).normalized;
 
         //Now we start the loop for pathmaking, as long as we aren't at the end
         while (totalDist > 0)
