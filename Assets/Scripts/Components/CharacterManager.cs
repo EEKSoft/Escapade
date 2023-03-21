@@ -14,7 +14,10 @@ public class CharacterManager : MonoBehaviour
     //Parameters to be given to the statemachine when needed
     private object[] stateParameters;
 
+    //Where is this character
     public Point location;
+
+    public bool hasKey;
 
     void Start()
     {

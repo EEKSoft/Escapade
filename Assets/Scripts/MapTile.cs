@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 
 /// <summary>
@@ -37,6 +39,8 @@ public class MapTile
     public Point position;
     //Type of tile
     public TileIndex tileType = TileIndex.Unrealized;
+    //Entropy value, IE how many potential states, lower is better
+    float entropy = 1f;
 
     /// <summary>
     /// Used to load tiles sprites for the level, can be used to
@@ -53,7 +57,14 @@ public class MapTile
         }
     }
 
-    
+    /// <summary>
+    /// Recalculates the entropy of the tile
+    /// </summary>
+    public void RecalculateEntropy()
+    {
+        //Take the tiletype and put it into a temp variable
+        entropy = 1f - (float)Enum.GetValues(typeof(TileIndex)).Cast<Enum>().Count(tileType.HasFlag) / 4f;
+    }
 
     /// <summary>
     /// Should only be used at the end of building the tile map to place all the given tiles

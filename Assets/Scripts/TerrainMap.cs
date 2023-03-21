@@ -53,7 +53,7 @@ public class TerrainMap
             TileLocations[kvp.Key].Generate(parent);
         }
     }
-
+    #region Preset tiles, need to be certain tiles so there is no WFC going on here
     /// <summary>
     /// Generates the predefined edges of the map
     /// </summary>
@@ -217,6 +217,22 @@ public class TerrainMap
     }
 
     /// <summary>
+    /// Used for tiles that have to exist in a certain spot, start / end / key zone tiles
+    /// </summary>
+    /// <param name="type">Tile type</param>
+    /// <param name="x">X location of tiles</param>
+    /// <param name="y">Y location of tile</param>
+    private void AddPredefinedTile(TileIndex type, int x, int y)
+    {
+        //Makes the tile and sets it at it's position
+        MapTile tile = new MapTile();
+        tile.tileType = type;
+        tile.position = new Point(x, y);
+        TileLocations.Add(tile.position, tile);
+    }
+    #endregion
+
+    /// <summary>
     /// Prepares the UnrealizedTiles variable with all tiles not currently in use and evaluates them
     /// </summary>
     private void PrepareUnestablishedTiles()
@@ -241,19 +257,5 @@ public class TerrainMap
         }
     }
 
-    /// <summary>
-    /// Used for tiles that have to exist in a certain spot, start / end / key zone tiles
-    /// </summary>
-    /// <param name="type">Tile type</param>
-    /// <param name="x">X location of tiles</param>
-    /// <param name="y">Y location of tile</param>
-    private void AddPredefinedTile(TileIndex type, int x, int y)
-    {
-        //Makes the tile and sets it at it's position
-        MapTile tile = new MapTile();
-        tile.tileType = type;
-        tile.position = new Point(x, y);
-        TileLocations.Add(tile.position, tile);
-    }
 
 }
