@@ -32,6 +32,14 @@ public class MapTile
     public static readonly TileIndex MovementBlocking = TileIndex.Solid | TileIndex.Impassable | TileIndex.Edge;
     public static readonly TileIndex VisionBlocking = TileIndex.Solid | TileIndex.Edge;
 
+    public static readonly Dictionary<TileIndex, int> weights = new Dictionary<TileIndex, int>()
+    {
+        {TileIndex.Basic, 125},
+        {TileIndex.Solid, 200 },
+        {TileIndex.Impassable, 75 },
+        {TileIndex.Rough, 50 }
+    };
+
     public static Sprite[] tileSprites;
     //Object itself
     public GameObject self;
@@ -39,7 +47,7 @@ public class MapTile
     public Point position;
     //Type of tile
     public TileIndex tileType = TileIndex.Unrealized;
-    //Entropy value, IE how many potential states, lower is better
+    //Entropy value, IE how many potential states, lower is better, and is mostly used for sorting the next tile to collapse
     float entropy = 1f;
 
     /// <summary>
@@ -60,10 +68,42 @@ public class MapTile
     /// <summary>
     /// Recalculates the entropy of the tile
     /// </summary>
-    public void RecalculateEntropy()
+    private void RecalculateEntropy()
     {
-        //Take the tiletype and put it into a temp variable
+        //Basic entropy calculation based on the number of flags, less flags = lower number
         entropy = 1f - (float)Enum.GetValues(typeof(TileIndex)).Cast<Enum>().Count(tileType.HasFlag) / 4f;
+    }
+
+    /// <summary>
+    /// Looks at the surrounding tiles and updates the current tile rules and entropy based on the nearby rules
+    /// </summary>
+    public void Evaluate()
+    {
+
+        //Lastly do this for safety
+        RecalculateEntropy();
+    }
+
+    /// <summary>
+    /// Using the existing rules, decides on a final tile type to settle on, with some weighted probablities based on the given options
+    /// </summary>
+    public void Collapse()
+    {
+        //This lets use do weighted randomness
+        Dictionary<int, TileIndex> randomSelectionDictionary = new Dictionary<int, TileIndex>();
+        //Used in the random dictionary above
+        int sum = 0;
+        //Loop through all the current flags that are active
+        foreach (Enum e in Enum.GetValues(typeof(TileIndex)).Cast<Enum>().ToList().Where(tileType.HasFlag))
+        {
+            //Add the weight to the sum, and the sum to the dictionary with the enum
+            sum += weights[(TileIndex)e];
+            randomSelectionDictionary.Add(sum, (TileIndex)e);
+        }
+        //Now that we've done that, generate a random number between 0 and sum
+        int choice = UnityEngine.Random.Range(0, sum);
+        //Now linq grab from the dictionary the next number above or equal to choice
+        tileType = randomSelectionDictionary.Where(i => i.Key >= choice).OrderBy(s => s.Key).First().Value;
     }
 
     /// <summary>

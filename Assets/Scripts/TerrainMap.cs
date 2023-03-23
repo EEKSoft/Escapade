@@ -233,7 +233,7 @@ public class TerrainMap
     #endregion
 
     /// <summary>
-    /// Prepares the UnrealizedTiles variable with all tiles not currently in use and evaluates them
+    /// Prepares the UnrealizedTiles variable with all tiles not currently in use and initially evaluates them
     /// </summary>
     private void PrepareUnestablishedTiles()
     {
