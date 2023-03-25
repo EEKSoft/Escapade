@@ -23,14 +23,13 @@ public enum TileIndex
     Impassable = 8,
     //Map Edge
     Edge = 16,
-    //Before it is officially 'realized' or decided, it is every tile except edge
-    Unrealized = ~0 << 1
 }
 
 public class MapTile
 {
     public static readonly TileIndex MovementBlocking = TileIndex.Solid | TileIndex.Impassable | TileIndex.Edge;
     public static readonly TileIndex VisionBlocking = TileIndex.Solid | TileIndex.Edge;
+    public static readonly TileIndex Unrealized = TileIndex.Basic | TileIndex.Solid | TileIndex.Rough | TileIndex.Impassable;
 
     public static readonly Dictionary<TileIndex, int> weights = new Dictionary<TileIndex, int>()
     {
@@ -46,9 +45,11 @@ public class MapTile
     //Position of the tile
     public Point position;
     //Type of tile
-    public TileIndex tileType = TileIndex.Unrealized;
+    public TileIndex tileType = Unrealized;
     //Entropy value, IE how many potential states, lower is better, and is mostly used for sorting the next tile to collapse
-    float entropy = 1f;
+    public float entropy = 1f;
+    //Determines whether or not the tile has collapsed
+    public bool decided = false;
 
     /// <summary>
     /// Used to load tiles sprites for the level, can be used to
@@ -71,7 +72,7 @@ public class MapTile
     private void RecalculateEntropy()
     {
         //Basic entropy calculation based on the number of flags, less flags = lower number
-        entropy = 1f - (float)Enum.GetValues(typeof(TileIndex)).Cast<Enum>().Count(tileType.HasFlag) / 4f;
+        entropy = (float)Enum.GetValues(typeof(TileIndex)).Cast<Enum>().Count(tileType.HasFlag) / 4f;
     }
 
     /// <summary>
