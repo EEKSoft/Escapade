@@ -31,12 +31,12 @@ public class MapTile
     public static readonly TileIndex VisionBlocking = TileIndex.Solid | TileIndex.Edge;
     public static readonly TileIndex Unrealized = TileIndex.Basic | TileIndex.Solid | TileIndex.Rough | TileIndex.Impassable;
 
-    public static readonly Dictionary<TileIndex, int> weights = new Dictionary<TileIndex, int>()
+    public Dictionary<TileIndex, int> weights = new Dictionary<TileIndex, int>()
     {
-        {TileIndex.Basic, 125},
-        {TileIndex.Solid, 200 },
-        {TileIndex.Impassable, 75 },
-        {TileIndex.Rough, 50 }
+        {TileIndex.Basic, 175 },
+        {TileIndex.Solid, 100 },
+        {TileIndex.Impassable, 10 },
+        {TileIndex.Rough, 100 }
     };
 
     public static Sprite[] tileSprites;
@@ -50,6 +50,8 @@ public class MapTile
     public float entropy = 1f;
     //Determines whether or not the tile has collapsed
     public bool decided = false;
+    //Adjacent tiles
+    MapTile[] adjacent = new MapTile[4];
 
     /// <summary>
     /// Used to load tiles sprites for the level, can be used to
@@ -76,11 +78,50 @@ public class MapTile
     }
 
     /// <summary>
+    /// Gets the adjacent tiles to be checked for the evaluation method
+    /// </summary>
+    /// <returns></returns>
+    public void GetAdjacent(TerrainMap map)
+    {
+        //X and Y to more easily get the points
+        int X = position.X;
+        int Y = position.Y;
+        //Fill it with the adjacent points
+        adjacent[0] = map.TileLocations[new Point(X + 1, Y)];
+        adjacent[1] = map.TileLocations[new Point(X - 1, Y)];
+        adjacent[2] = map.TileLocations[new Point(X, Y + 1)];
+        adjacent[3] = map.TileLocations[new Point(X, Y - 1)];
+    }
+
+    /// <summary>
     /// Looks at the surrounding tiles and updates the current tile rules and entropy based on the nearby rules
     /// </summary>
     public void Evaluate()
     {
-
+        //Perform operations based on nearby tiles
+        int wallCount = 0;
+        int floorCount = 0;
+        //Flags for rough and impassable tiles
+        bool flag = false;
+        //Loop through and count based on nearby
+        foreach(MapTile tile in adjacent)
+        {
+            if (tile.decided)
+            {
+                //Tick up the wall and floor 
+                if ((tile.tileType & (TileIndex.Basic | TileIndex.Rough)) != 0) floorCount++;
+                if ((tile.tileType & MovementBlocking) != 0) wallCount++;
+                //If any of the nearby tiles are the appropriate tile, trip flag
+                if ((tile.tileType & (TileIndex.Rough | TileIndex.Impassable)) != 0) flag = true;
+            }
+        }
+        //Apply rules based on these values
+        //No rough or impassables near eachother
+        if (flag) tileType &= (TileIndex.Basic | TileIndex.Solid);
+        //Floor must always be adjacent to more floor
+        if (floorCount == 0) tileType &= (TileIndex.Solid);
+        //No rough tiles by wall, and vice versa
+        if (wallCount > 0) tileType &= (TileIndex.Basic | TileIndex.Solid);
         //Lastly do this for safety
         RecalculateEntropy();
     }
@@ -90,6 +131,8 @@ public class MapTile
     /// </summary>
     public void Collapse()
     {
+        //First Evaluate the tile one last time
+        Evaluate();
         //This lets use do weighted randomness
         Dictionary<int, TileIndex> randomSelectionDictionary = new Dictionary<int, TileIndex>();
         //Used in the random dictionary above
@@ -105,6 +148,9 @@ public class MapTile
         int choice = UnityEngine.Random.Range(0, sum);
         //Now linq grab from the dictionary the next number above or equal to choice
         tileType = randomSelectionDictionary.Where(i => i.Key >= choice).OrderBy(s => s.Key).First().Value;
+        //Set these to indicate the tile is finished
+        decided = true;
+        entropy = 0f;
     }
 
     /// <summary>
@@ -129,6 +175,6 @@ public class MapTile
         //Get the sprite at the given index
         renderer.sprite = tileSprites[spriteIndex];
     }
-    
+   
     
 }

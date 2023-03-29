@@ -20,7 +20,7 @@ public class TerrainMap
     //About how far from the center of the path from the start to exit can the start of the path to the key generate
     public const int KEYPATH_DEVIATION = 10;
     //Max amount of tiles to collapse per iteration
-    public const int TILE_ITERATIONS = 10;
+    public const int TILE_ITERATIONS = 30;
 
     //A dictionary of tile locations, x y point keys to the tile at that coordinate
     public Dictionary<Point, MapTile> TileLocations;
@@ -52,11 +52,9 @@ public class TerrainMap
         //Preparatory step for WFC
         PrepareUnestablishedTiles();
         //
-        int x = 1000;
-        while (UnrealizedCoordinates.Count > 0 && x > 0)
+        while (UnrealizedCoordinates.Count > 0)
         {
             CollapseWave();
-            x--;
         }
         //Finally, fully generate all tiles with actual objects
         foreach(KeyValuePair<Point, MapTile> kvp in TileLocations)
@@ -275,14 +273,17 @@ public class TerrainMap
     /// </summary>
     private void CollapseWave()
     {
-        //First go through all un-established tiles, and force them to evaluate
-        foreach (Point p in UnrealizedCoordinates) TileLocations[p].Evaluate();
+        //First go through all un-established tiles, get their adjacent tiles, and force them to evaluate
+        foreach (Point p in UnrealizedCoordinates)
+        {
+            TileLocations[p].GetAdjacent(this);
+            TileLocations[p].Evaluate();
+        }
         //Points of 10 lowest entropy tiles
         Point[] points = TileLocations.Where(c => !c.Value.decided).OrderByDescending(x => x.Value.entropy).Skip(UnrealizedCoordinates.Count - Math.Min(TILE_ITERATIONS, UnrealizedCoordinates.Count)).Select(p => p.Key).ToArray();
         //Go through the 10 lowest entropy tiles and collapse them
         foreach (Point p in points)
         {
-            TileLocations[p].decided = true;
             TileLocations[p].Collapse();
             UnrealizedCoordinates.Remove(p);
         }
