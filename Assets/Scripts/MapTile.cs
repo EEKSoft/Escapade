@@ -33,10 +33,12 @@ public class MapTile
 
     public Dictionary<TileIndex, int> weights = new Dictionary<TileIndex, int>()
     {
-        {TileIndex.Basic, 175 },
+        {TileIndex.Basic, 300 },
         {TileIndex.Solid, 100 },
         {TileIndex.Impassable, 10 },
-        {TileIndex.Rough, 100 }
+        {TileIndex.Rough, 20 },
+        //Only exists for error avoiding purposes
+        {TileIndex.Edge, 1 }
     };
 
     public static Sprite[] tileSprites;
@@ -87,10 +89,10 @@ public class MapTile
         int X = position.X;
         int Y = position.Y;
         //Fill it with the adjacent points
-        adjacent[0] = map.TileLocations[new Point(X + 1, Y)];
-        adjacent[1] = map.TileLocations[new Point(X - 1, Y)];
-        adjacent[2] = map.TileLocations[new Point(X, Y + 1)];
-        adjacent[3] = map.TileLocations[new Point(X, Y - 1)];
+        adjacent[0] = map.TileLocations[new Point(X, Y + 1)];
+        adjacent[1] = map.TileLocations[new Point(X + 1, Y)];
+        adjacent[2] = map.TileLocations[new Point(X, Y - 1)];
+        adjacent[3] = map.TileLocations[new Point(X - 1, Y)];
     }
 
     /// <summary>
@@ -120,8 +122,11 @@ public class MapTile
         if (flag) tileType &= (TileIndex.Basic | TileIndex.Solid);
         //Floor must always be adjacent to more floor
         if (floorCount == 0) tileType &= (TileIndex.Solid);
-        //No rough tiles by wall, and vice versa
-        if (wallCount > 0) tileType &= (TileIndex.Basic | TileIndex.Solid);
+        //Walls are less likely when near a wall and floor
+        if (floorCount > 0 && wallCount > 0)
+        {
+            weights[TileIndex.Solid] = 50;
+        }
         //Lastly do this for safety
         RecalculateEntropy();
     }
@@ -131,8 +136,6 @@ public class MapTile
     /// </summary>
     public void Collapse()
     {
-        //First Evaluate the tile one last time
-        Evaluate();
         //This lets use do weighted randomness
         Dictionary<int, TileIndex> randomSelectionDictionary = new Dictionary<int, TileIndex>();
         //Used in the random dictionary above
@@ -151,6 +154,8 @@ public class MapTile
         //Set these to indicate the tile is finished
         decided = true;
         entropy = 0f;
+        //Lastly, make the nearby tiles evaluate
+        foreach(MapTile tile in adjacent) if(tile != null && !tile.decided) tile.Evaluate();
     }
 
     /// <summary>

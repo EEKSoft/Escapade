@@ -20,7 +20,7 @@ public class TerrainMap
     //About how far from the center of the path from the start to exit can the start of the path to the key generate
     public const int KEYPATH_DEVIATION = 10;
     //Max amount of tiles to collapse per iteration
-    public const int TILE_ITERATIONS = 30;
+    public const int TILE_ITERATIONS = 10;
 
     //A dictionary of tile locations, x y point keys to the tile at that coordinate
     public Dictionary<Point, MapTile> TileLocations;
@@ -43,15 +43,44 @@ public class TerrainMap
         TileLocations = new Dictionary<Point, MapTile>();
         //First generate the edges of the map
         GenerateEdges();
+        //Get the whole thing ready
+        PrepareUnestablishedTiles();
+        //Make sure all tiles know their neighbors beforehand
+        foreach(KeyValuePair<Point, MapTile> tile in TileLocations.Where(p => UnrealizedCoordinates.Contains(p.Key)))
+        {
+            tile.Value.GetAdjacent(this);
+        }
         //Next, generate the spawn and exit zones
         GenerateSpawnExit();
         //Afterwards, find a location for the key and setup the area for it
         GenerateKeyZone();
         //Generate the paths from start to exit, and from random point on the path to the key
         GenerateLegalPaths();
-        //Preparatory step for WFC
-        PrepareUnestablishedTiles();
-        //
+        //Pick a few random points and fill them in with floors to add zest
+        Point[] randomCollapses = new Point[10];
+        for (int i = 0; i < randomCollapses.Length; i++)
+        {
+            //Generate random point from unrealized coordinates
+            int randomNum = UnityEngine.Random.Range(0, UnrealizedCoordinates.Count);
+            //If already in randomcollapse, try again
+            if (randomCollapses.Contains(UnrealizedCoordinates[randomNum]))
+            {
+                //Go back one iteration
+                i--;
+                //Continue loop
+                continue;
+            }
+            //If not there, just add it
+            randomCollapses[i] = UnrealizedCoordinates[randomNum];
+        }
+        //Now collapse those tiles
+        foreach(Point p in randomCollapses)
+        {
+            TileLocations[p].tileType = TileIndex.Basic;
+            TileLocations[p].Collapse();
+            UnrealizedCoordinates.Remove(p);
+        }
+        //While unrealized tiles exist, do a round of collapses
         while (UnrealizedCoordinates.Count > 0)
         {
             CollapseWave();
@@ -150,11 +179,11 @@ public class TerrainMap
         //Next generate path from the start of the key path to the key
         GeneratePath(keyStart, keyPoint, ref queuedNodes, false);
         //Cull the queued nodes of all existing nodes (In the tilelocation dictionary) and duplicate nodes
-        queuedNodes = queuedNodes.Where(p => !TileLocations.ContainsKey(p)).Distinct().ToList();
+        queuedNodes = queuedNodes.Distinct().ToList();
         //Finally, for each queued node, add them as predefined basic tiles
         foreach(Point p in queuedNodes)
         {
-            AddPredefinedTile(TileIndex.Basic, p.X, p.Y);
+            AddPredefinedTile(TileIndex.Basic | TileIndex.Rough, p.X, p.Y);
         }
     }
 
@@ -233,12 +262,20 @@ public class TerrainMap
     /// <param name="y">Y location of tile</param>
     private void AddPredefinedTile(TileIndex type, int x, int y)
     {
-        //Makes the tile and sets it at it's position
-        MapTile tile = new MapTile();
+        //Point first
+        Point p = new Point(x, y);
+        //Get tile
+        MapTile tile = TileLocations.ContainsKey(p) ? TileLocations[p] : new MapTile();
+        //Set it's type
         tile.tileType = type;
-        tile.position = new Point(x, y);
-        tile.decided = true;
-        TileLocations.Add(tile.position, tile);
+        //Verify position
+        tile.position = p;
+        //Add it to tilelocations if not there
+        if(!TileLocations.ContainsKey(p) ) TileLocations.Add(p, tile);
+        //Collapse it
+        tile.Collapse();
+        //Remove from unrealized if there
+        if (UnrealizedCoordinates != null && UnrealizedCoordinates.Contains(p)) UnrealizedCoordinates.Remove(p);
     }
     #endregion
 
@@ -273,12 +310,6 @@ public class TerrainMap
     /// </summary>
     private void CollapseWave()
     {
-        //First go through all un-established tiles, get their adjacent tiles, and force them to evaluate
-        foreach (Point p in UnrealizedCoordinates)
-        {
-            TileLocations[p].GetAdjacent(this);
-            TileLocations[p].Evaluate();
-        }
         //Points of 10 lowest entropy tiles
         Point[] points = TileLocations.Where(c => !c.Value.decided).OrderByDescending(x => x.Value.entropy).Skip(UnrealizedCoordinates.Count - Math.Min(TILE_ITERATIONS, UnrealizedCoordinates.Count)).Select(p => p.Key).ToArray();
         //Go through the 10 lowest entropy tiles and collapse them
