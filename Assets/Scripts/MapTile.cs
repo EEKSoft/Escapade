@@ -33,7 +33,7 @@ public class MapTile
 
     public Dictionary<TileIndex, int> weights = new Dictionary<TileIndex, int>()
     {
-        {TileIndex.Basic, 300 },
+        {TileIndex.Basic, 100 },
         {TileIndex.Solid, 100 },
         {TileIndex.Impassable, 10 },
         {TileIndex.Rough, 20 },
@@ -76,7 +76,7 @@ public class MapTile
     private void RecalculateEntropy()
     {
         //Basic entropy calculation based on the number of flags, less flags = lower number
-        entropy = (float)Enum.GetValues(typeof(TileIndex)).Cast<Enum>().Count(tileType.HasFlag) / 4f;
+        entropy = 1 - adjacent.Count(t => t.decided) / 4;
     }
 
     /// <summary>
@@ -134,7 +134,7 @@ public class MapTile
     /// <summary>
     /// Using the existing rules, decides on a final tile type to settle on, with some weighted probablities based on the given options
     /// </summary>
-    public void Collapse()
+    public void Collapse(TerrainMap map)
     {
         //This lets use do weighted randomness
         Dictionary<int, TileIndex> randomSelectionDictionary = new Dictionary<int, TileIndex>();
@@ -155,7 +155,14 @@ public class MapTile
         decided = true;
         entropy = 0f;
         //Lastly, make the nearby tiles evaluate
-        foreach(MapTile tile in adjacent) if(tile != null && !tile.decided) tile.Evaluate();
+        foreach (MapTile tile in adjacent)
+        {
+            if (tile != null && !tile.decided)
+            {
+                tile.GetAdjacent(map);
+                tile.Evaluate();
+            }
+        }
     }
 
     /// <summary>

@@ -56,30 +56,8 @@ public class TerrainMap
         GenerateKeyZone();
         //Generate the paths from start to exit, and from random point on the path to the key
         GenerateLegalPaths();
-        //Pick a few random points and fill them in with floors to add zest
-        Point[] randomCollapses = new Point[10];
-        for (int i = 0; i < randomCollapses.Length; i++)
-        {
-            //Generate random point from unrealized coordinates
-            int randomNum = UnityEngine.Random.Range(0, UnrealizedCoordinates.Count);
-            //If already in randomcollapse, try again
-            if (randomCollapses.Contains(UnrealizedCoordinates[randomNum]))
-            {
-                //Go back one iteration
-                i--;
-                //Continue loop
-                continue;
-            }
-            //If not there, just add it
-            randomCollapses[i] = UnrealizedCoordinates[randomNum];
-        }
-        //Now collapse those tiles
-        foreach(Point p in randomCollapses)
-        {
-            TileLocations[p].tileType = TileIndex.Basic;
-            TileLocations[p].Collapse();
-            UnrealizedCoordinates.Remove(p);
-        }
+        //Collapse some random points
+        CollapseRandom(10);
         //While unrealized tiles exist, do a round of collapses
         while (UnrealizedCoordinates.Count > 0)
         {
@@ -255,6 +233,38 @@ public class TerrainMap
     }
 
     /// <summary>
+    /// Collapses a handful of random tiles
+    /// </summary>
+    /// <param name="count"></param>
+    private void CollapseRandom(int count)
+    {
+        //Pick a few random points and fill them in with floors to add zest
+        Point[] randomCollapses = new Point[count];
+        for (int i = 0; i < randomCollapses.Length; i++)
+        {
+            //Generate random point from unrealized coordinates
+            int randomNum = UnityEngine.Random.Range(0, UnrealizedCoordinates.Count);
+            //If already in randomcollapse, try again
+            if (randomCollapses.Contains(UnrealizedCoordinates[randomNum]))
+            {
+                //Go back one iteration
+                i--;
+                //Continue loop
+                continue;
+            }
+            //If not there, just add it
+            randomCollapses[i] = UnrealizedCoordinates[randomNum];
+        }
+        //Now collapse those tiles
+        foreach (Point p in randomCollapses)
+        {
+            TileLocations[p].tileType = TileIndex.Basic;
+            TileLocations[p].Collapse(this);
+            UnrealizedCoordinates.Remove(p);
+        }
+    }
+
+    /// <summary>
     /// Used for tiles that have to exist in a certain spot, start / end / key zone tiles
     /// </summary>
     /// <param name="type">Tile type</param>
@@ -273,7 +283,7 @@ public class TerrainMap
         //Add it to tilelocations if not there
         if(!TileLocations.ContainsKey(p) ) TileLocations.Add(p, tile);
         //Collapse it
-        tile.Collapse();
+        tile.Collapse(this);
         //Remove from unrealized if there
         if (UnrealizedCoordinates != null && UnrealizedCoordinates.Contains(p)) UnrealizedCoordinates.Remove(p);
     }
@@ -315,7 +325,7 @@ public class TerrainMap
         //Go through the 10 lowest entropy tiles and collapse them
         foreach (Point p in points)
         {
-            TileLocations[p].Collapse();
+            TileLocations[p].Collapse(this);
             UnrealizedCoordinates.Remove(p);
         }
     }
