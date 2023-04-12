@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class PlayerMoveState : State
 {
-    private const float baseDuration = 0.25f;
+    // baseDuration is movement speed
+    private const float baseDuration = 0.12f;
     private float movementFraction = 0f;
     private Vector3 startPosition;
     private Vector3 endPosition;

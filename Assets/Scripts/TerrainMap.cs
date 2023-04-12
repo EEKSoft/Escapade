@@ -11,8 +11,8 @@ public class TerrainMap
     //Distance between tile centers
     public const int TILE_GAP = 1;
     //General map size, can be altered later to be changeable
-    public const int MAP_WIDTH = 40;
-    public const int MAP_HEIGHT = 40;
+    public const int MAP_WIDTH = 100;
+    public const int MAP_HEIGHT = 100;
     //Width / Height of player start, key, and goal locations
     public const int SAFE_TILE_ZONE_WH = 3;
     //How far in from the corner does the player and exit spawn, and what is the min key distance from edges

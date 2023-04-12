@@ -100,6 +100,7 @@ public class MapTile
     /// </summary>
     public void Evaluate()
     {
+        tileType = Unrealized;
         //Perform operations based on nearby tiles
         int wallCount = 0;
         int floorCount = 0;
