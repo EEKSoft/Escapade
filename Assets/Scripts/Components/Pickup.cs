@@ -11,6 +11,7 @@ public class Pickup : MonoBehaviour
         GameObject obj = other.gameObject;
         //Get the input of it
         CharacterInput input = obj.GetComponentInChildren<CharacterInput>();
+        //First make sure the input exists on the object, then make sure it belongs to a player
         if (input && input.IsPlayer())
         {
             //Give the player the 'key'
