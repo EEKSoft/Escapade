@@ -46,4 +46,9 @@ public class CharacterInput : MonoBehaviour
             onMovementKeyAttempted.Invoke(direction);
         }
     }
+
+    public bool IsPlayer()
+    {
+        return isPlayer;
+    }
 }

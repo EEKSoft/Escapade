@@ -33,10 +33,10 @@ public class MapTile
 
     public Dictionary<TileIndex, int> weights = new Dictionary<TileIndex, int>()
     {
-        {TileIndex.Basic, 100 },
+        {TileIndex.Basic, 120 },
         {TileIndex.Solid, 100 },
         {TileIndex.Impassable, 10 },
-        {TileIndex.Rough, 20 },
+        {TileIndex.Rough, 15 },
         //Only exists for error avoiding purposes
         {TileIndex.Edge, 1 }
     };
