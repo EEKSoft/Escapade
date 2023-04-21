@@ -16,4 +16,16 @@ public class MainMenu : MonoBehaviour
         Application.Quit();
     }
 
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void GoToCredits()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Credits");
+    }
+
 }
