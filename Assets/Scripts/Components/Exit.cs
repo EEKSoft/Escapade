@@ -18,7 +18,7 @@ public class Exit : MonoBehaviour
             //Check if the player has the 'key'
            if (obj.GetComponentInChildren<CharacterManager>().hasKey)
             {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+                SceneManager.LoadScene("MainMenu");
             }
             
             
