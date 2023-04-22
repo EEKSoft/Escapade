@@ -33,10 +33,10 @@ public class MapTile
 
     public Dictionary<TileIndex, int> weights = new Dictionary<TileIndex, int>()
     {
-        {TileIndex.Basic, 120 },
+        {TileIndex.Basic, 110 },
         {TileIndex.Solid, 100 },
-        {TileIndex.Impassable, 10 },
-        {TileIndex.Rough, 15 },
+        {TileIndex.Impassable, 15 },
+        {TileIndex.Rough, 20 },
         //Only exists for error avoiding purposes
         {TileIndex.Edge, 1 }
     };
@@ -104,8 +104,6 @@ public class MapTile
         //Perform operations based on nearby tiles
         int wallCount = 0;
         int floorCount = 0;
-        //Flags for rough and impassable tiles
-        bool flag = false;
         //Loop through and count based on nearby
         foreach(MapTile tile in adjacent)
         {
@@ -115,12 +113,11 @@ public class MapTile
                 if ((tile.tileType & (TileIndex.Basic | TileIndex.Rough)) != 0) floorCount++;
                 if ((tile.tileType & MovementBlocking) != 0) wallCount++;
                 //If any of the nearby tiles are the appropriate tile, trip flag
-                if ((tile.tileType & (TileIndex.Rough | TileIndex.Impassable)) != 0) flag = true;
             }
         }
         //Apply rules based on these values
-        //No rough or impassables near eachother
-        if (flag) tileType &= (TileIndex.Basic | TileIndex.Solid);
+        //Try to make it so rough / impass only spawn around 2+ floors
+        if (floorCount < 2) tileType &= (TileIndex.Basic | TileIndex.Solid);
         //Floor must always be adjacent to more floor
         if (floorCount == 0) tileType &= (TileIndex.Solid);
         //Walls are less likely when near a wall and floor

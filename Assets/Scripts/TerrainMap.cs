@@ -10,17 +10,22 @@ public class TerrainMap
 {
     //Distance between tile centers
     public const int TILE_GAP = 1;
-    //General map size, can be altered later to be changeable
-    public const int MAP_WIDTH = 30;
-    public const int MAP_HEIGHT = 30;
     //Width / Height of player start, key, and goal locations
     public const int SAFE_TILE_ZONE_WH = 3;
     //How far in from the corner does the player and exit spawn, and what is the min key distance from edges
     public const int SPAWN_OFFSET = SAFE_TILE_ZONE_WH / 2;
-    //About how far from the center of the path from the start to exit can the start of the path to the key generate
-    public const int KEYPATH_DEVIATION = 10;
     //Max amount of tiles to collapse per iteration
     public const int TILE_ITERATIONS = 10;
+    //Starter values for map gen parameters
+    public const int INITIAL_KEYPATH_DEVIATION = 10;
+    public const int INITIAL_MAP_WIDTH = 30;
+    public const int INITIAL_MAP_HEIGHT = 30;
+
+    //About how far from the center of the path from the start to exit can the start of the path to the key generate
+    public static int keypathDeviation = INITIAL_KEYPATH_DEVIATION;
+    //General map size, can be altered later to be changeable
+    public static int mapWidth = INITIAL_MAP_WIDTH;
+    public static int mapHeight = INITIAL_MAP_HEIGHT;
 
     //A dictionary of tile locations, x y point keys to the tile at that coordinate
     public Dictionary<Point, MapTile> TileLocations;
@@ -39,6 +44,10 @@ public class TerrainMap
     {
         //Initiate the random state with the given seed
         UnityEngine.Random.InitState(seed);
+        //Set variables based on level depth
+        mapHeight = INITIAL_MAP_HEIGHT + (10 * Level.depth - 10);
+        mapWidth = INITIAL_MAP_WIDTH + (10 * Level.depth - 10);
+        keypathDeviation = INITIAL_KEYPATH_DEVIATION + (4 * Level.depth - 4);
         //Initialize the tilelocations dictionary
         TileLocations = new Dictionary<Point, MapTile>();
         //First generate the edges of the map
@@ -76,16 +85,16 @@ public class TerrainMap
     private void GenerateEdges()
     {
         //First get the top edge tiles
-        for (int t = 0; t <= MAP_WIDTH; t++) AddPredefinedTile(TileIndex.Edge, t, 1);
+        for (int t = 0; t <= mapWidth; t++) AddPredefinedTile(TileIndex.Edge, t, 1);
 
         //Next right tiles
-        for (int r = 0; r >= -MAP_HEIGHT; r--) AddPredefinedTile(TileIndex.Edge, MAP_WIDTH, r);
+        for (int r = 0; r >= -mapHeight; r--) AddPredefinedTile(TileIndex.Edge, mapWidth, r);
 
         //Then bottom tiles
-        for (int b = MAP_WIDTH -1; b >= -1; b--) AddPredefinedTile(TileIndex.Edge, b, -MAP_HEIGHT);
+        for (int b = mapWidth -1; b >= -1; b--) AddPredefinedTile(TileIndex.Edge, b, -mapHeight);
 
         //Finally left tiles
-        for (int l = -MAP_HEIGHT + 1; l <= 1; l++) AddPredefinedTile(TileIndex.Edge, -1, l);
+        for (int l = -mapHeight + 1; l <= 1; l++) AddPredefinedTile(TileIndex.Edge, -1, l);
     }
 
     /// <summary>
@@ -95,7 +104,7 @@ public class TerrainMap
     {
         //Mark the spawn and exit points
         spawnPoint = new Point(SPAWN_OFFSET, -SPAWN_OFFSET);
-        exitPoint = new Point(MAP_WIDTH - SPAWN_OFFSET - 1, -MAP_HEIGHT + SPAWN_OFFSET + 1);
+        exitPoint = new Point(mapWidth - SPAWN_OFFSET - 1, -mapHeight + SPAWN_OFFSET + 1);
         //First the top left for spawn zone
         for(int x = spawnPoint.X - 1; x <= spawnPoint.X + 1; x++)
         {
@@ -121,11 +130,11 @@ public class TerrainMap
     private void GenerateKeyZone()
     {
         //Used later in the calculation
-        int halfX = MAP_WIDTH / 2;
-        int halfY = MAP_HEIGHT / 2;
+        int halfX = mapWidth / 2;
+        int halfY = mapHeight / 2;
         //Randomly generate the x location with a few rules
         //First determine an x location, between the map edges (0, map width) accounting for offset
-        int randX = (int)MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, MAP_WIDTH - SPAWN_OFFSET - 1));
+        int randX = (int)MathF.Round(UnityEngine.Random.Range(SPAWN_OFFSET, mapWidth - SPAWN_OFFSET - 1));
         //Generate the Y offset based on x value
         int yOffset = randX > halfX - 1 ? 0 : halfY - 1;
         //Ok, now we generate the y value, half -> full if x is < half, otherwise it is 0 -> half
@@ -151,7 +160,7 @@ public class TerrainMap
         //First generate a path between spawn and exit
         GeneratePath(spawnPoint, exitPoint, ref queuedNodes, true);
         //Grab one of the points at around the half point of the current queued nodes for the key, using the offset
-        int offset = UnityEngine.Random.Range(-KEYPATH_DEVIATION, KEYPATH_DEVIATION);
+        int offset = UnityEngine.Random.Range(-keypathDeviation, keypathDeviation);
         int nodePosition = queuedNodes.Count() / 2 - 1 + offset;
         Point keyStart = queuedNodes[nodePosition];
         //Next generate path from the start of the key path to the key
@@ -298,9 +307,9 @@ public class TerrainMap
         Point point;
         UnrealizedCoordinates = new List<Point>();
         //First generate all points sequentially as long as they do not exist in TileLocations
-        for (int x = 0; x < MAP_WIDTH; x++)
+        for (int x = 0; x < mapWidth; x++)
         {
-            for (int y = 0; y > -MAP_HEIGHT; y--)
+            for (int y = 0; y > -mapHeight; y--)
             {
                 //Generate the point
                 point = new Point(x, y);

@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class Level 
 {
+    //How many levels deep are we
+    public static int depth = 1;
     //Current level instance in use
     public static Level currentLevel { get; private set; }
 
