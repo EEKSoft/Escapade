@@ -24,9 +24,12 @@ public class MainMenu : MonoBehaviour
     public void LaunchGame()
     {
         int seed = 0;
-        if (input.text == string.Empty || !int.TryParse(input.text, out seed))
+        string seedString = input.text.Trim();
+        if (seedString == string.Empty) RerollSeed();
+        seedString = input.text.Trim();
+        if (!int.TryParse(seedString, out seed))
         {
-            List<byte> byteList = Encoding.ASCII.GetBytes(input.text).ToList();
+            List<byte> byteList = Encoding.ASCII.GetBytes(seedString).ToList();
             while(byteList.Count < 4) byteList.Add(0);
             seed = BitConverter.ToInt32(byteList.ToArray());
         }

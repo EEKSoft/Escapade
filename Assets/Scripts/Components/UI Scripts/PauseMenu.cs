@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-
+    public TMP_Text seedText;
     public GameObject pauseMenu;
     public bool isPaused;
 
@@ -13,6 +14,7 @@ public class PauseMenu : MonoBehaviour
     void Start()
     {
         pauseMenu.SetActive(false);
+        seedText.text = LevelGenerator.seed.ToString();
     }
 
     // Update is called once per frame
@@ -20,14 +22,8 @@ public class PauseMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (isPaused)
-            {
-                ResumeGame();
-            }
-            else
-            {
-                PauseGame();
-            }
+            if (isPaused) ResumeGame();
+            else PauseGame();
         } 
     }
 
@@ -52,7 +48,9 @@ public class PauseMenu : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
     }
 
-   
-
-     
+    public void CopySeed()
+    {
+        string stringSeed = LevelGenerator.seed.ToString();
+        GUIUtility.systemCopyBuffer = stringSeed;
+    }
 }
