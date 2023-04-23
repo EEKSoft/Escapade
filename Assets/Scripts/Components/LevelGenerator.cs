@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class LevelGenerator : MonoBehaviour
 {
+    public static int seed = 0;
     void Start()
     {
-        Level.InstantiateNewLevel(new System.Random().Next(), gameObject);
+        Level.InstantiateNewLevel(seed, gameObject);
     }
 
 }

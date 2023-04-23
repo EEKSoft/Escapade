@@ -1,14 +1,38 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-    public void PlayGame()
+    public TMP_InputField input;
 
+    public void PlayGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        SceneManager.LoadScene("PregameScene");
+    }
+
+    public void RerollSeed()
+    {
+        input.text = new System.Random().Next().ToString();
+    }
+
+    public void LaunchGame()
+    {
+        int seed = 0;
+        if (input.text == string.Empty || !int.TryParse(input.text, out seed))
+        {
+            List<byte> byteList = Encoding.ASCII.GetBytes(input.text).ToList();
+            while(byteList.Count < 4) byteList.Add(0);
+            seed = BitConverter.ToInt32(byteList.ToArray());
+        }
+        Level.depth = 1;
+        LevelGenerator.seed = seed;
+        SceneManager.LoadScene("PlayScene");
     }
 
     public void QuitGame()
