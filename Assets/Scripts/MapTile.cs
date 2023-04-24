@@ -41,7 +41,7 @@ public class MapTile
         {TileIndex.Edge, 1 }
     };
 
-    public static Sprite[] tileSprites;
+    public static Sprite[][] tileSprites;
     //Object itself
     public GameObject self;
     //Position of the tile
@@ -61,12 +61,13 @@ public class MapTile
     public static void LoadTileSprites()
     {
         //Establish the array
-        tileSprites = new Sprite[5];
+        tileSprites = new Sprite[5][];
         //Loop through the array and assign the tile sprites to it
         for (int i = 0; i < tileSprites.Length; i++)
         {
+            Sprite[] sprites = Resources.LoadAll<Sprite>($"Sprites/Tiles/{i}");
             //Like this means we can do levels with slightly differently designed tiles if we want, just a tad more changes
-            tileSprites[i] = Resources.Load<Sprite>($"Sprites/sprite_tiles_{i}");
+            tileSprites[i] = sprites;
         }
     }
 
@@ -182,8 +183,10 @@ public class MapTile
         SpriteRenderer renderer = self.AddComponent<SpriteRenderer>();
         //Calculate the sprite index by getting the base 2 log of the enumerable tile type
         int spriteIndex = (int)Mathf.Log((int)tileType, 2);
+        //Get possible sprites
+        Sprite[] options = tileSprites[spriteIndex];
         //Get the sprite at the given index
-        renderer.sprite = tileSprites[spriteIndex];
+        renderer.sprite = options[UnityEngine.Random.Range(0, options.Length - 1)];
     }
    
     
