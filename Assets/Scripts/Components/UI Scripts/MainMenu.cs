@@ -35,7 +35,7 @@ public class MainMenu : MonoBehaviour
         }
         Level.depth = 1;
         LevelGenerator.seed = seed;
-        SceneManager.LoadScene("PlayScene");
+        SceneManager.LoadScene("TransitionScene");
     }
 
     public void QuitGame()
