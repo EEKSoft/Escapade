@@ -18,6 +18,9 @@ EditorBuildSettings:
     path: Assets/Scenes/PregameScene.unity
     guid: bf6c697318874a54492f0dc3e8fa2baf
   - enabled: 1
-    path: Assets/Scenes/TransitionScene.unity
+    path: Assets/Scenes/WinScene.unity
     guid: 7d435d8cf37bf924197c0dc5c6dde29f
+  - enabled: 1
+    path: Assets/Scenes/TransitionScene.unity
+    guid: ebe2827a6c4f69a4299071842ec5de9d
   m_configObjects: {}
