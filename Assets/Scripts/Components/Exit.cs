@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(BoxCollider2D))]
 public class Exit : MonoBehaviour
 {
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnCollisionEnter2D(Collision2D other)
     {
         //Get the parent gameobject of the other collider
         GameObject obj = other.gameObject;
@@ -16,7 +16,7 @@ public class Exit : MonoBehaviour
         if (input && input.IsPlayer())
         {
             //Check if the player has the 'key'
-           if (obj.GetComponentInChildren<CharacterManager>().hasKey)
+            if (obj.GetComponentInChildren<CharacterManager>().hasKey)
             {
                 if (Level.depth < 5)
                 {
@@ -29,9 +29,6 @@ public class Exit : MonoBehaviour
                     Level.depth = 1;
                 }
             }
-            
-            
         }
-
     }
 }

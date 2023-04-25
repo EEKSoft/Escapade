@@ -172,21 +172,27 @@ public class MapTile
     /// <param name="parent"></param>
     public void Generate(GameObject parent)
     {
+        //Calculate the sprite index by getting the base 2 log of the enumerable tile type
+        int spriteIndex = (int)Mathf.Log((int)tileType, 2);
         //Create the gameobject
-        self = new GameObject($"Tile_{tileType}");
+        self = UnityEngine.Object.Instantiate(Resources.Load<GameObject>("Prefabs/TilePrefab"));
+        //Assign right layer for vision
+        if ((tileType & VisionBlocking) > 0) self.layer = LayerMask.NameToLayer("Tile");
         //Assign it to the parent object
         self.transform.parent = parent.transform;
         self.transform.localScale = self.transform.localScale * TerrainMap.TILE_GAP;
         //Set the position appropriately
         self.transform.position = new Vector3(position.X, position.Y) * TerrainMap.TILE_GAP;
+        //Give it a random rotation
+        if (spriteIndex == 0 || spriteIndex == 2) self.transform.eulerAngles = new Vector3(0, 0, UnityEngine.Random.Range(0, 3)) * 90;
         //Add the sprite renderer component
-        SpriteRenderer renderer = self.AddComponent<SpriteRenderer>();
-        //Calculate the sprite index by getting the base 2 log of the enumerable tile type
-        int spriteIndex = (int)Mathf.Log((int)tileType, 2);
+        SpriteRenderer renderer = self.GetComponent<SpriteRenderer>();
         //Get possible sprites
         Sprite[] options = tileSprites[spriteIndex];
         //Get the sprite at the given index
         renderer.sprite = options[UnityEngine.Random.Range(0, options.Length - 1)];
+        //Disable the spriterenderer so they can be rendered properly
+        renderer.enabled = false;
     }
    
     

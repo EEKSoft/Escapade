@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider2D))]
 public class Pickup : MonoBehaviour
 {
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnCollisionEnter2D(Collision2D other)
     {
         //Get the parent gameobject of the other collider
         GameObject obj = other.gameObject;
@@ -19,6 +19,5 @@ public class Pickup : MonoBehaviour
             //Destroy self in this case
             Destroy(gameObject);
         }
-
     }
 }
